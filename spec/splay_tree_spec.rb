@@ -27,7 +27,37 @@ describe SplayTreeVertex do
 
   end
 
+  it 'should return the correct size for root node after random insertions' do
+    # tree_size = 100
+    sample_space_size = 1000
+    l = 10
+    j = 100
+    l.times do
+      set = (1..sample_space_size).to_a.shuffle!
+      vertex = SplayTreeVertex.new(set.pop)
+      (1..j).each do |i|
+        expect(vertex.size).to eq i
+        vertex = vertex.splay_insert(set.pop)
+      end
+    end
+  end
 
+  it 'should return the correct size for all nodes after random insertions' do
+    # tree_size = 100
+    sample_space_size = 100
+    l = 10
+    j = 20
+    l.times do
+      set = (1..sample_space_size).to_a.shuffle!
+      vertex = SplayTreeVertex.new(set.pop)
+      (1..j).each do |i|
+        vertex.in_order do |v|
+          expect(v.get_size).to eq v.size
+        end
+        vertex = vertex.splay_insert(set.pop)
+      end
+    end
+  end
 
   it 'should pass a stress test for small_rotation operations' do
     stress_test(:small_rotation)
@@ -70,21 +100,48 @@ describe SplayTreeVertex do
       vertex = generate_random_tree(rand(tree_size)+1,sample_space_size)
       i = rand(sample_space_size)
       old_in = vertex.to_inorder
+      old_size = vertex.size
       v1,v2 = vertex.find(i).split
       if v2
         inorder2 = v2.to_inorder
+        size2 = v2.size
       else
         inorder2 = []
+        size2 = 0
       end
+      expect(old_size).to eq v1.size + size2
       expect(old_in).to eq v1.to_inorder+inorder2
       v = v1.merge(v2)
       expect(old_in).to eq v.to_inorder
+      expect(v.size).to eq old_size
     end
 
   end
 
+  it 'should pass a stress test for find_by_order operation' do
+    tree_size = 100
+    sample_space_size = 200
+    l = 1000
+    # j = 1000
+    l.times do
+      size = rand(tree_size)+1
+      vertex = generate_random_tree(size,sample_space_size)
+      a = (0...size).map do |i|
+        vertex.find_by_order(i).key
+      end
+      b = vertex.to_inorder
+      pp vertex.to_inorder
+      expect(a).to eq b
+    end
+  end
+
 end
 
+
+
+#
+# Helper methods
+#
 
 def stress_test(method,condition: ->(v){v.parent},arguments:nil)
 
@@ -205,17 +262,15 @@ end
 
 
 
-
-
-
 def generate_random_tree(tree_size,sample_space_size)
   set = (1..sample_space_size).to_a
   set.shuffle!
   vertex = SplayTreeVertex.new(set.pop)
 
-  until set.size < sample_space_size - tree_size
+  until set.size <= sample_space_size - tree_size
     x = set.pop
     vertex.insert(x)
   end
+  vertex.post_order{|v| v.update_size}
   vertex
 end

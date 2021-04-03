@@ -1,11 +1,10 @@
 require 'pry'
 
 class Vertex
-  def initialize(key=0, sum=nil, left=nil, right=nil, parent=nil)
-    @key, @sum, @left, @right, @parent =  key, sum, left, right, parent
-    @sum = @key if @key
+  def initialize(key=0, left=nil, right=nil, parent=nil)
+    @key, @left, @right, @parent =  key, left, right, parent
   end
-  attr_accessor :sum, :left, :right, :parent
+  attr_accessor :left, :right, :parent
   attr_reader :key
 
   # Basic Operations
@@ -173,7 +172,7 @@ class Vertex
     true
   end
 
-  def size
+  def get_size
     sum = 0
     in_order do |v|
       sum += 1
@@ -188,17 +187,17 @@ class Vertex
       @size = 1
       return @size
     end
-    @size = [child_size(left),child_size(right)].sum + 1
+    @size = [child_size_memoized(left),child_size_memoized(right)].sum + 1
     @size
   end
-
-  def size_memo_clear
-    in_order do |v|
-      v.instance_variable_set :@size, nil
-    end
-  end
-
-  def child_size(child)
+  #
+  # def size_memo_clear
+  #   in_order do |v|
+  #     v.instance_variable_set :@size, nil
+  #   end
+  # end
+  #
+  def child_size_memoized(child)
     if child
       child.size_memoized
     else
@@ -322,6 +321,7 @@ class Vertex
   def add_leaf(k)
     v = self.class.new(k)
     add_vertex(v)
+    v
   end
 
   # def add_leaf(k)
@@ -337,7 +337,7 @@ class Vertex
   # end
 
   def add_leaf_raw(k,side)
-    v = self.class.new(k,k,nil,nil,self)
+    v = self.class.new(k,nil,nil,self)
     add_vertex_raw(v,side)
   end
 

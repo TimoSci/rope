@@ -3,24 +3,31 @@ require_relative './vertex.rb'
 
 class SplayTreeVertex < Vertex
 
+  attr_accessor :size
+
+  def initialize(*args)
+    super(*args)
+    update_size
+  end
+
   #
   # Splay specific operations
   #
 
   def update
     # return unless self
-    update_sum
+    update_size
     left.parent = self if left
     right.parent = self if right
   end
 
-  def update_sum
-    self.sum = key + child_sum(left) + child_sum(right)
+  def update_size
+    self.size = 1 + child_size(left) + child_size(right)
   end
 
-  def child_sum(child)
+  def child_size(child)
     if child
-      child.sum
+      child.size || child.get_size
     else
       0
     end
@@ -134,7 +141,7 @@ class SplayTreeVertex < Vertex
   end
 
   #
-  # split and merge
+  # Split and Merge
   #
 
   def split
@@ -143,6 +150,7 @@ class SplayTreeVertex < Vertex
     r = right
     self.right = nil
     r.parent = nil
+    update_size
     [self,r]
   end
 
@@ -151,9 +159,37 @@ class SplayTreeVertex < Vertex
     raise "must not have a right child" if right
     self.right = other
     other.parent = self
+    update_size
     self
   end
 
+  #
+  # Order Statistics
+  #
+
+  # Find nth element using size memo
+  def find_by_order(n)
+    raise "position must be positive" if n < 0
+    raise "position must be smaller than size of tree" if n >= size
+    if child_size(left) > n
+      left.find_by_order(n)
+    elsif child_size(left) < n
+      right.find_by_order( n - 1 - child_size(left))
+    elsif child_size(left) == n
+      return self
+    end
+  end
+
+  #
+  # Diagnostic
+  #
+
+  def size_correct?
+    in_order do |v|
+      return false if v.get_size != v.size
+    end
+    return true
+  end
 
 end
 
@@ -163,8 +199,13 @@ v = SplayTreeVertex.new(1)
   v = v.splay_insert(i)
 end
 
-10000.times do
+100.times do
   v = v.splay_find(rand(1000))
+end
+
+(0...1000).each do |i|
+  w = v.find_by_order(i)
+  pp w.key
 end
 
 # myinput1 = [
