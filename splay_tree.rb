@@ -191,6 +191,20 @@ class SplayTreeVertex < Vertex
     return true
   end
 
+  #
+  # Class methods
+  #
+
+  def self.generate_random_tree(tree_size,sample_space_size=nil)
+    sample_space_size = tree_size unless sample_space_size
+    set = (0...sample_space_size).to_a.shuffle!
+    vertex = self.new(set.pop)
+    until set.size <= sample_space_size - tree_size
+      vertex = vertex.splay_insert(set.pop)
+    end
+    vertex
+  end
+
 end
 
 
