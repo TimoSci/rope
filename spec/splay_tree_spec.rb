@@ -101,7 +101,7 @@ describe SplayTreeVertex do
       i = rand(sample_space_size)
       old_in = vertex.to_inorder
       old_size = vertex.size
-      v1,v2 = vertex.find(i).split
+      v1,v2 = vertex.find(i).split_right
       if v2
         inorder2 = v2.to_inorder
         size2 = v2.size
@@ -111,7 +111,34 @@ describe SplayTreeVertex do
       end
       expect(old_size).to eq v1.size + size2
       expect(old_in).to eq v1.to_inorder+inorder2
-      v = v1.merge(v2)
+      v = v1.merge_right(v2)
+      expect(old_in).to eq v.to_inorder
+      expect(v.size).to eq old_size
+    end
+
+  end
+
+  it 'should pass a stress test for split and merge (left) operations' do
+    tree_size = 100
+    sample_space_size = 200
+    l = 100
+
+    l.times do
+      vertex = generate_random_tree(rand(tree_size)+1,sample_space_size)
+      i = rand(sample_space_size)
+      old_in = vertex.to_inorder
+      old_size = vertex.size
+      v1,v2 = vertex.find(i).split_left
+      if v2
+        inorder2 = v2.to_inorder
+        size2 = v2.size
+      else
+        inorder2 = []
+        size2 = 0
+      end
+      expect(old_size).to eq v1.size + size2
+      expect(old_in).to eq inorder2+v1.to_inorder
+      v = v1.merge_left(v2)
       expect(old_in).to eq v.to_inorder
       expect(v.size).to eq old_size
     end
@@ -130,7 +157,6 @@ describe SplayTreeVertex do
         vertex.find_by_order(i).key
       end
       b = vertex.to_inorder
-      pp vertex.to_inorder
       expect(a).to eq b
     end
   end

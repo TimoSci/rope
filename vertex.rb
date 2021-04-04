@@ -351,7 +351,7 @@ class Vertex
     end
   end
 
-  private
+  # private
 
   attr_writer :key
 

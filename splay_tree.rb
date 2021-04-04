@@ -21,13 +21,19 @@ class SplayTreeVertex < Vertex
     right.parent = self if right
   end
 
+  def update_size_all
+    in_order{|v| v.size = nil}
+    update_size
+  end
+
   def update_size
     self.size = 1 + child_size(left) + child_size(right)
+    size
   end
 
   def child_size(child)
     if child
-      child.size || child.get_size
+      child.size || child.update_size
     else
       0
     end
@@ -145,6 +151,16 @@ class SplayTreeVertex < Vertex
   #
 
   def split
+    split_right
+    # split_left
+  end
+
+  def merge(other)
+    merge_right(other)
+    # merge_left
+  end
+
+  def split_right
     splay
     return [self,nil] unless right
     r = right
@@ -154,10 +170,30 @@ class SplayTreeVertex < Vertex
     [self,r]
   end
 
-  def merge(other)
+  def split_left
+    splay
+    return [self,nil] unless left
+    l = left
+    self.left = nil
+    l.parent = nil
+    update_size
+    [self,l]
+  end
+
+
+  def merge_right(other)
     return self unless other
     raise "must not have a right child" if right
     self.right = other
+    other.parent = self
+    update_size
+    self
+  end
+
+  def merge_left(other)
+    return self unless other
+    raise "must not have a left child" if left
+    self.left = other
     other.parent = self
     update_size
     self
@@ -200,37 +236,41 @@ class SplayTreeVertex < Vertex
     set = (0...sample_space_size).to_a.shuffle!
     vertex = self.new(set.pop)
     until set.size <= sample_space_size - tree_size
-      vertex = vertex.splay_insert(set.pop)
+      # vertex = vertex.splay_insert(set.pop)
+      vertex.insert(set.pop)
     end
+    vertex.update_size_all
     vertex
   end
 
+
+
 end
 
 
-v = SplayTreeVertex.new(1)
-(2..1000).each do |i|
-  v = v.splay_insert(i)
-end
-
-100.times do
-  v = v.splay_find(rand(1000))
-end
-
-(0...1000).each do |i|
-  w = v.find_by_order(i)
-  pp w.key
-end
-
-# myinput1 = [
-#   [4,1,2],
-#   [2,3,4],
-#   [5,-1,-1],
-#   [1,-1,-1],
-#   [3,-1,-1]
-# ]
+# v = SplayTreeVertex.new(1)
+# (2..1000).each do |i|
+#   v = v.splay_insert(i)
+# end
 #
-# v= SplayTreeVertex.from_a(myinput1)
-# w = v.find(1)
-
-binding.pry
+# 100.times do
+#   v = v.splay_find(rand(1000))
+# end
+#
+# (0...1000).each do |i|
+#   w = v.find_by_order(i)
+#   pp w.key
+# end
+#
+# # myinput1 = [
+# #   [4,1,2],
+# #   [2,3,4],
+# #   [5,-1,-1],
+# #   [1,-1,-1],
+# #   [3,-1,-1]
+# # ]
+# #
+# # v= SplayTreeVertex.from_a(myinput1)
+# # w = v.find(1)
+#
+# binding.pry
