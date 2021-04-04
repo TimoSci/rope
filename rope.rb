@@ -34,39 +34,26 @@ class Rope < SplayTreeVertex
     v
   end
 
+  def cut_and_paste(i,j,k)
+    raise "insert point must be smaller or larger than cut point" if k >= i && k <= j
+    arr = cut(i,j,k)
+    temp = arr[1]
+    arr[1] = arr[2]
+    arr[2] = temp
+    self.class.join(arr)
+  end
 
-  attr_reader :string, :tree
 
-  private
-
-  attr_writer :string, :tree
 
 end
 
-n = Rope.generate_random_tree(1000)
-
-order1 = n.to_inorder
-
-a = n.cut(50,150,350)
-
-order2 = []
-a.each do |v|
-  order2 = order2+v.to_inorder
-end
-
-nn = Rope.join(a)
-order3 = nn.to_inorder
 
 
 
-
-
-
-class BSTString < Rope
+class BSTString
 
   def initialize(string)
-    @string = string
-    super(string.size)
+    @tree = Rope.generate_random_tree(string.size)
     i = 0
     @tree.in_order do |v|
       v.key = string[i]
@@ -74,8 +61,21 @@ class BSTString < Rope
     end
   end
 
+  attr_accessor :tree
+
   def to_s
-    to_inorder.join
+    tree.to_inorder.join
+  end
+
+  def cut_and_paste(i,j,k)
+    self.tree = tree.cut_and_paste(i,j,k)
+    to_s
   end
 
 end
+
+# n = Rope.generate_random_tree(100)
+
+s = BSTString.new("helloworld")
+
+binding.pry
